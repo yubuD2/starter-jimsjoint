@@ -47,14 +47,20 @@ class Order extends Application {
 	// that any such substitutions we wish make are injected into the 
 	// variable parameters
 	// Merge this fix into your origin/master for the lab!
-	$this->data['meals']['order_num'] = $order_num;
-	$this->data['drinks']['order_num'] = $order_num;
-	$this->data['sweets']['order_num'] = $order_num;
+	$this->hokeyfix($this->data['meals'],$order_num);
+	$this->hokeyfix($this->data['drinks'],$order_num);
+	$this->hokeyfix($this->data['sweets'],$order_num);
 	// end of hokey patch
 	
         $this->render();
     }
 
+    // inject order # into nested variable pair parameters
+    function hokeyfix($varpair,$order) {
+	foreach($varpair as &$record)
+	    $record->order_num = $order;
+    }
+    
     // make a menu ordering column
     function make_column($category) {
         //FIXME
