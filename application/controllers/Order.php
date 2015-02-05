@@ -36,6 +36,22 @@ class Order extends Application {
         $this->data['drinks'] = $this->make_column('d');
         $this->data['sweets'] = $this->make_column('s');
 
+	// Bit of a hokey patch here, to work around the problem of the template
+	// parser no longer allowing access to a parent variable inside a
+	// child loop - used for the columns in the menu display.
+	// this feature, formerly in CI2.2, was removed in CI3 because
+	// it presented a security vulnerability.
+	// 
+	// This means that we cannot reference order_num inside of any of the
+	// variable pair loops in our view, but must instead make sure
+	// that any such substitutions we wish make are injected into the 
+	// variable parameters
+	// Merge this fix into your origin/master for the lab!
+	$this->data['meals']['order_num'] = $order_num;
+	$this->data['drinks']['order_num'] = $order_num;
+	$this->data['sweets']['order_num'] = $order_num;
+	// end of hokey patch
+	
         $this->render();
     }
 
