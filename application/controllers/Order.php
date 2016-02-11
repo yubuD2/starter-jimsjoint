@@ -84,7 +84,7 @@ class Order extends Application {
     }
 
     // proceed with checkout
-    function proceed($order_num) {
+    function commit($order_num) {
         //FIXME
         redirect('/');
     }
