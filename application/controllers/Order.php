@@ -2,9 +2,9 @@
 
 /**
  * Order handler
- * 
+ *
  * Implement the different order handling usecases.
- * 
+ *
  * controllers/welcome.php
  *
  * ------------------------------------------------------------------------
@@ -17,7 +17,15 @@ class Order extends Application {
 
     // start a new order
     function neworder() {
-        //FIXME
+        $order_num = $this->Orders->highest() + 1;
+
+        $neworder = $this->Orders->create();
+        $neworder->num = $order_num;
+        $neworder->date = date();
+        $neworder->status = 'a';
+        $neworder->total = 0;
+
+        $this->Orders->add($neworder);
 
         redirect('/order/display_menu/' . $order_num);
     }
@@ -29,7 +37,8 @@ class Order extends Application {
 
         $this->data['pagebody'] = 'show_menu';
         $this->data['order_num'] = $order_num;
-        //FIXME
+        $this->data['title']= "Order # ". $order_num
+        . ' (' . number_format($this->Orders->total($order_num), 2) . ')';
 
         // Make the columns
         $this->data['meals'] = $this->make_column('m');
@@ -41,17 +50,17 @@ class Order extends Application {
 	// child loop - used for the columns in the menu display.
 	// this feature, formerly in CI2.2, was removed in CI3 because
 	// it presented a security vulnerability.
-	// 
+	//
 	// This means that we cannot reference order_num inside of any of the
 	// variable pair loops in our view, but must instead make sure
-	// that any such substitutions we wish make are injected into the 
+	// that any such substitutions we wish make are injected into the
 	// variable parameters
 	// Merge this fix into your origin/master for the lab!
 	$this->hokeyfix($this->data['meals'],$order_num);
 	$this->hokeyfix($this->data['drinks'],$order_num);
 	$this->hokeyfix($this->data['sweets'],$order_num);
 	// end of hokey patch
-	
+
         $this->render();
     }
 
@@ -60,16 +69,16 @@ class Order extends Application {
 	foreach($varpair as &$record)
 	    $record->order_num = $order;
     }
-    
+
     // make a menu ordering column
     function make_column($category) {
-        //FIXME
-        return $items;
+        return $this->Menu->some('category', $category);
     }
 
     // add an item to an order
     function add($order_num, $item) {
         //FIXME
+        $this->Orders->add_item($order_num, $item);
         redirect('/order/display_menu/' . $order_num);
     }
 
@@ -78,20 +87,38 @@ class Order extends Application {
         $this->data['title'] = 'Checking Out';
         $this->data['pagebody'] = 'show_order';
         $this->data['order_num'] = $order_num;
-        //FIXME
+        $this->data['okornot'] = $this->Orders->validate($order_num) ? "" : "disabled";
+
+        $this->data['total'] = number_format($this->Orders->total($order_num, 2));
+
+        $items = $this->Orderitems->group($order_num);
+        foreach ($items as $item) {
+            $menuitem = $this->Menu->get($item->item);
+            $item->code = $menuitem->name;
+        }
+        $this->data['items'] = $items;
 
         $this->render();
     }
 
     // proceed with checkout
     function commit($order_num) {
-        //FIXME
+        if(!$this->Orders->validate($order_num))
+            redirect('/order/display_menu/' . $order_num);
+        $record = $this->Orders->get($order_num);
+        $record->date = date(DATE_ATOM);
+        $record->status = 'c';
+        $record->total = $this->Orders->total($order_num);
+        $this->Orders->update($record);
         redirect('/');
     }
 
     // cancel the order
     function cancel($order_num) {
-        //FIXME
+        $this->Orderitems->delete_some($order_num);
+        $record = $this->Orders->get($order_num);
+        $record->status= 'x';
+        $this->Orders->update($record);
         redirect('/');
     }
 
