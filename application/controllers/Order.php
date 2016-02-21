@@ -17,9 +17,6 @@ class Order extends Application {
 
     // start a new order
     function neworder() {
-        //FIXME
-        $this->load->model("orders");
-
         $order_num = $this->Orders->highest() + 1;
 
         $neworder = $this->Orders->create();
@@ -41,7 +38,7 @@ class Order extends Application {
         $this->data['pagebody'] = 'show_menu';
         $this->data['order_num'] = $order_num;
         $this->data['title']= "Order # ". $order_num
-        . ' (' . number_format($this->orders->total($order_num), 2) . ')';
+        . ' (' . number_format($this->Orders->total($order_num), 2) . ')';
 
         // Make the columns
         $this->data['meals'] = $this->make_column('m');
@@ -75,13 +72,13 @@ class Order extends Application {
 
     // make a menu ordering column
     function make_column($category) {
-        return $this->menu->some('category', $category);
+        return $this->Menu->some('category', $category);
     }
 
     // add an item to an order
     function add($order_num, $item) {
         //FIXME
-        $this->orders->add_item($order_num, $item);
+        $this->Orders->add_item($order_num, $item);
         redirect('/order/display_menu/' . $order_num);
     }
 
@@ -90,22 +87,23 @@ class Order extends Application {
         $this->data['title'] = 'Checking Out';
         $this->data['pagebody'] = 'show_order';
         $this->data['order_num'] = $order_num;
+        $this->data['okornot'] = $this->Orders->validate($order_num) ? "" : "disabled";
 
-        $this->data['total'] = number_format($this->orders->total($order_num, 2));
+        $this->data['total'] = number_format($this->Orders->total($order_num, 2));
 
-        $items = $this->orderitems->group($order_num);
+        $items = $this->Orderitems->group($order_num);
         foreach ($items as $item) {
-            $menuitem = $this->menu->get($item->item);
+            $menuitem = $this->Menu->get($item->item);
             $item->code = $menuitem->name;
         }
         $this->data['items'] = $items;
-        $this->data['okornot'] = $this->orders->validate($order_num) ? "" : "disabled";
+
         $this->render();
     }
 
     // proceed with checkout
     function commit($order_num) {
-        if(!$this->orders->validate($order_num))
+        if(!$this->Orders->validate($order_num))
             redirect('/order/display_menu/' . $order_num);
         $record = $this->Orders->get($order_num);
         $record->date = date(DATE_ATOM);

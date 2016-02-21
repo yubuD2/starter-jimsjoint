@@ -60,16 +60,15 @@ class Orders extends MY_Model {
     // validate an fclose(handle)
     // it must have at least one item from each category
     function validate($num) {
-        $this->load->model('menu');
-        $this->load->model('orderitems');
         $CI = & get_instance();
-        $items = $CI->orderitems->group($num);
+        $items = $CI->Orderitems->group($num);
         $gotem = array();
-        if(count($items) > 0)
+        if(count($items) > 0) {
             foreach ($items as $item) {
-                $menu = $CI->menu->get($item->item);
+                $menu = $CI->Menu->get($item->item);
                 $gotem[$menu->category] = 1;
             }
+        }
         return isset($gotem['m']) && isset($gotem['d']) && isset($gotem['s']);
     }
 
